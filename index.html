@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeadDOT — Dead Man's Switch on Polkadot</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #080a0e;
+        --surface: #0d1117;
+        --border: #1c2333;
+        --red: #e5303a;
+        --red-dim: rgba(229, 48, 58, 0.12);
+        --red-glow: rgba(229, 48, 58, 0.35);
+        --green: #2dcd7a;
+        --green-dim: rgba(45, 205, 122, 0.1);
+        --muted: #4a5568;
+        --text: #c9d1d9;
+        --text-dim: #6e7681;
+        --dot: #e6007a;
+        --mono: "Share Tech Mono", monospace;
+        --display: "Bebas Neue", sans-serif;
+        --body: "DM Sans", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--body);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.4;
+      }
+      .wrap {
+        position: relative;
+        z-index: 1;
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 48px 24px 80px;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 48px;
+      }
+      .pulse-ring {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 72px;
+        height: 72px;
+        position: relative;
+        margin-bottom: 20px;
+      }
+      .pulse-ring::before,
+      .pulse-ring::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 2px solid var(--red);
+        animation: pulse-out 2s ease-out infinite;
+      }
+      .pulse-ring::after {
+        animation-delay: 1s;
+      }
+      .heart-icon {
+        width: 32px;
+        height: 32px;
+        fill: var(--red);
+        animation: heartbeat 2s ease infinite;
+        position: relative;
+        z-index: 1;
+      }
+      @keyframes pulse-out {
+        0% {
+          transform: scale(0.8);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
+      @keyframes heartbeat {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        14% {
+          transform: scale(1.15);
+        }
+        28% {
+          transform: scale(1);
+        }
+        42% {
+          transform: scale(1.1);
+        }
+        56% {
+          transform: scale(1);
+        }
+      }
+      h1 {
+        font-family: var(--display);
+        font-size: 56px;
+        letter-spacing: 3px;
+        line-height: 1;
+        color: #fff;
+      }
+      h1 span {
+        color: var(--dot);
+      }
+      .tagline {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--text-dim);
+        font-family: var(--mono);
+        letter-spacing: 1px;
+      }
+      .wallet-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 32px;
+      }
+
+      /* Buttons */
+      .btn {
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: all 0.15s;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .btn-dot {
+        background: var(--dot);
+        color: #fff;
+      }
+      .btn-dot:hover:not(:disabled) {
+        filter: brightness(1.15);
+        transform: translateY(-1px);
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+      }
+      .btn-ghost:hover:not(:disabled) {
+        border-color: var(--text-dim);
+        color: var(--text);
+      }
+      .btn-red {
+        background: var(--red-dim);
+        border: 1px solid var(--red);
+        color: var(--red);
+      }
+      .btn-red:hover:not(:disabled) {
+        background: var(--red);
+        color: #fff;
+      }
+      .btn-green {
+        background: var(--green-dim);
+        border: 1px solid var(--green);
+        color: var(--green);
+      }
+      .btn-green:hover:not(:disabled) {
+        background: var(--green);
+        color: #000;
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        filter: none;
+      }
+
+      /* Spinner */
+      .spinner {
+        width: 12px;
+        height: 12px;
+        border: 2px solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        flex-shrink: 0;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .status-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .status-card.danger {
+        border-color: var(--red);
+        box-shadow: 0 0 32px var(--red-glow);
+      }
+      .status-card.safe {
+        border-color: #1c3a2b;
+      }
+      .status-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+      }
+      .countdown {
+        font-family: var(--display);
+        font-size: 72px;
+        line-height: 1;
+        letter-spacing: 2px;
+        color: #fff;
+        margin-bottom: 8px;
+        transition: color 0.5s;
+      }
+      .countdown.danger {
+        color: var(--red);
+        text-shadow: 0 0 40px var(--red-glow);
+      }
+      .countdown.safe {
+        color: var(--green);
+      }
+      .countdown-sub {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-bottom: 24px;
+      }
+      .stats-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+      }
+      .stat {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 14px;
+        border: 1px solid var(--border);
+      }
+      .stat-label {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 6px;
+      }
+      .stat-value {
+        font-family: var(--mono);
+        font-size: 15px;
+        color: var(--text);
+        word-break: break-all;
+      }
+      .stat-value.pink {
+        color: var(--dot);
+      }
+      .ekg-wrap {
+        height: 48px;
+        overflow: hidden;
+        margin: 20px 0 0;
+        opacity: 0.6;
+      }
+      .ekg-wrap svg {
+        width: 100%;
+        height: 100%;
+      }
+      .ekg-path {
+        stroke: var(--red);
+        stroke-width: 1.5;
+        fill: none;
+        stroke-dasharray: 800;
+        stroke-dashoffset: 800;
+        animation: ekg-draw 3s linear infinite;
+      }
+      @keyframes ekg-draw {
+        0% {
+          stroke-dashoffset: 800;
+          opacity: 1;
+        }
+        70% {
+          stroke-dashoffset: 0;
+          opacity: 1;
+        }
+        100% {
+          stroke-dashoffset: 0;
+          opacity: 0;
+        }
+      }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      .panel-title {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+      }
+      .actions-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .actions-row .btn {
+        flex: 1;
+        text-align: center;
+      }
+      .log {
+        margin-top: 8px;
+        max-height: 120px;
+        overflow-y: auto;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-dim);
+        line-height: 1.8;
+      }
+      .log .log-entry {
+        padding: 2px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .log .log-entry.ok {
+        color: var(--green);
+      }
+      .log .log-entry.err {
+        color: var(--red);
+      }
+      .log .log-entry.info {
+        color: var(--dot);
+      }
+      .network-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text-dim);
+        background: rgba(230, 0, 122, 0.08);
+        border: 1px solid rgba(230, 0, 122, 0.2);
+        border-radius: 20px;
+        padding: 4px 10px;
+        margin-bottom: 32px;
+      }
+      .dot-badge {
+        width: 6px;
+        height: 6px;
+        background: var(--dot);
+        border-radius: 50%;
+        animation: blink 2s infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .triggered-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(229, 48, 58, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--display);
+        font-size: 28px;
+        letter-spacing: 4px;
+        color: var(--red);
+        border-radius: 16px;
+      }
+      .hidden {
+        display: none !important;
+      }
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+      }
+      @media (max-width: 480px) {
+        .countdown {
+          font-size: 52px;
+        }
+        .stats-row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="header">
+        <div class="pulse-ring">
+          <svg
+            class="heart-icon"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            />
+          </svg>
+        </div>
+        <h1>DEAD<span>DOT</span></h1>
+        <p class="tagline">
+          // on-chain dead man's switch — polkadot hub / pvm
+        </p>
+      </div>
+
+      <div style="text-align: center">
+        <span class="network-badge"
+          ><span class="dot-badge"></span> Polkadot Hub Testnet — Chain
+          420420417</span
+        >
+      </div>
+
+      <div class="wallet-bar">
+        <button
+          class="btn btn-dot"
+          style="width: 100%"
+          id="connectBtn"
+          onclick="connectWallet()"
+        >
+          Connect Wallet
+        </button>
+        <div
+          id="addressBadge"
+          class="hidden"
+          style="
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <span id="addressText">—</span>
+          <button
+            class="btn btn-ghost"
+            style="padding: 4px 10px; font-size: 10px"
+            onclick="disconnectWallet()"
+          >
+            Disconnect
+          </button>
+        </div>
+      </div>
+
+      <div class="status-card hidden" id="statusCard">
+        <div class="status-label">// switch status</div>
+        <div class="countdown" id="countdown">--:--:--</div>
+        <div class="countdown-sub" id="countdownSub">loading...</div>
+        <div class="stats-row">
+          <div class="stat">
+            <div class="stat-label">Balance</div>
+            <div class="stat-value pink" id="statBalance">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Interval</div>
+            <div class="stat-value" id="statInterval">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Beneficiary</div>
+            <div
+              class="stat-value"
+              id="statBeneficiary"
+              style="font-size: 10px"
+            >
+              —
+            </div>
+          </div>
+        </div>
+        <div class="ekg-wrap">
+          <svg viewBox="0 0 600 48" preserveAspectRatio="none">
+            <path
+              class="ekg-path"
+              d="M0,24 L80,24 L100,24 L110,4 L120,44 L130,8 L140,24 L160,24 L240,24 L260,24 L270,4 L280,44 L290,8 L300,24 L320,24 L400,24 L420,24 L430,4 L440,44 L450,8 L460,24 L480,24 L600,24"
+            />
+          </svg>
+        </div>
+        <div id="triggeredOverlay" class="triggered-overlay hidden">
+          TRIGGERED
+        </div>
+      </div>
+
+      <div class="panel hidden" id="ownerPanel">
+        <div class="panel-title">// owner actions</div>
+        <div class="actions-row">
+          <button class="btn btn-green" id="btnPing" onclick="ping()">
+            💓 Ping — I'm Alive
+          </button>
+          <button
+            class="btn btn-ghost"
+            id="btnDeposit"
+            onclick="depositFunds()"
+          >
+            + Deposit WND
+          </button>
+          <button
+            class="btn btn-red"
+            id="btnWithdraw"
+            onclick="withdrawFunds()"
+          >
+            Withdraw &amp; Cancel
+          </button>
+        </div>
+      </div>
+
+      <div class="panel hidden" id="claimPanel">
+        <div class="panel-title">// beneficiary — claim available</div>
+        <button
+          class="btn btn-red"
+          id="btnClaim"
+          style="width: 100%"
+          onclick="claim()"
+        >
+          ☠ Claim Inheritance
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">// activity log</div>
+        <div class="log" id="log">
+          <div class="log-entry info">DeadDOT v1.0 — Polkadot Hub</div>
+          <div class="log-entry">Waiting for wallet connection...</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const CONTRACT_ADDRESS = "0x5f8496ACBb691933e2D55A81b9f2340712EE64f4";
+      const CHAIN_ID = 420420417;
+      const BALANCE_REFRESH_MS = 8000; // refresh balance every 8 seconds
+
+      const ABI = [
+        "function ping() external",
+        "function withdraw() external",
+        "function claim() external",
+        "function timeRemaining() external view returns (uint256)",
+        "function owner() external view returns (address)",
+        "function beneficiary() external view returns (address)",
+        "function interval() external view returns (uint256)",
+        "function triggered() external view returns (bool)",
+        "event Pinged(address indexed owner, uint256 at)",
+        "event Claimed(address indexed beneficiary, uint256 amount)",
+        "event Withdrawn(address indexed owner, uint256 amount)",
+      ];
+
+      let provider, signer, contract, userAddress;
+      let countdownTimer = null;
+
+      // ── Helpers ──────────────────────────────────────────────────────────────
+
+      function log(msg, type = "") {
+        const el = document.getElementById("log");
+        const entry = document.createElement("div");
+        entry.className = "log-entry " + type;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        el.insertBefore(entry, el.firstChild);
+      }
+
+      function fmtDuration(secs) {
+        if (secs <= 0) return "00:00:00";
+        const d = Math.floor(secs / 86400);
+        const h = Math.floor((secs % 86400) / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        if (d > 0)
+          return `${d}d ${String(h).padStart(2, "0")}h ${String(m).padStart(
+            2,
+            "0",
+          )}m`;
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(
+          2,
+          "0",
+        )}:${String(s).padStart(2, "0")}`;
+      }
+
+      function shortAddr(addr) {
+        return addr ? addr.slice(0, 6) + "…" + addr.slice(-4) : "—";
+      }
+
+      function loadScript(src) {
+        return new Promise((res, rej) => {
+          const s = document.createElement("script");
+          s.src = src;
+          s.onload = res;
+          s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+
+      // ── Button loading state ──────────────────────────────────────────────────
+
+      function setLoading(btnId, loading, originalText) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled = loading;
+        if (loading) {
+          btn.dataset.originalText = btn.innerHTML;
+          btn.innerHTML = `<span class="spinner"></span> ${
+            originalText || "Loading..."
+          }`;
+        } else {
+          btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+        }
+      }
+
+      // ── Connect ───────────────────────────────────────────────────────────────
+
+      async function connectWallet() {
+        try {
+          if (!window.ethereum) {
+            log("No wallet found. Install MetaMask or Talisman.", "err");
+            return;
+          }
+          if (!window.ethers) {
+            log("Loading ethers...", "info");
+            await loadScript(
+              "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js",
+            );
+          }
+
+          setLoading("connectBtn", true, "Connecting...");
+          provider = new ethers.BrowserProvider(window.ethereum);
+          await provider.send("eth_requestAccounts", []);
+          signer = await provider.getSigner();
+          userAddress = await signer.getAddress();
+
+          const network = await provider.getNetwork();
+          if (Number(network.chainId) !== CHAIN_ID) {
+            log(
+              `Wrong network. Switch MetaMask to Chain ID ${CHAIN_ID}`,
+              "err",
+            );
+            log(`RPC: https://services.polkadothub-rpc.com/testnet`, "info");
+            setLoading("connectBtn", false);
+            return;
+          }
+
+          document.getElementById("connectBtn").classList.add("hidden");
+          const badge = document.getElementById("addressBadge");
+          badge.classList.remove("hidden");
+          badge.style.display = "flex";
+          document.getElementById("addressText").textContent =
+            shortAddr(userAddress);
+
+          log(`Connected: ${userAddress}`, "ok");
+          contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+          await refreshState();
+          startCountdown();
+        } catch (e) {
+          log("Connection failed: " + e.message, "err");
+          setLoading("connectBtn", false);
+        }
+      }
+
+      function disconnectWallet() {
+        provider = signer = contract = userAddress = null;
+        if (countdownTimer) clearInterval(countdownTimer);
+        document.getElementById("connectBtn").classList.remove("hidden");
+        document.getElementById("addressBadge").classList.add("hidden");
+        document.getElementById("statusCard").classList.add("hidden");
+        document.getElementById("ownerPanel").classList.add("hidden");
+        document.getElementById("claimPanel").classList.add("hidden");
+        log("Disconnected", "info");
+      }
+
+      // ── State refresh ─────────────────────────────────────────────────────────
+
+      async function refreshBalance() {
+        if (!provider) return;
+        try {
+          const bal = await provider.getBalance(CONTRACT_ADDRESS);
+          document.getElementById("statBalance").textContent =
+            ethers.formatEther(bal) + " WND";
+        } catch (_) {}
+      }
+
+      async function refreshState() {
+        if (!contract) return;
+        try {
+          const [remaining, owner, beneficiary, interval, triggered] =
+            await Promise.all([
+              contract.timeRemaining(),
+              contract.owner(),
+              contract.beneficiary(),
+              contract.interval(),
+              contract.triggered(),
+            ]);
+
+          const remSecs = Number(remaining);
+          const claimable = !triggered && remSecs === 0;
+          const countdown = document.getElementById("countdown");
+          const card = document.getElementById("statusCard");
+
+          countdown.textContent = fmtDuration(remSecs);
+          document.getElementById("countdownSub").textContent = triggered
+            ? "Switch has been triggered"
+            : claimable
+            ? "⚠ CLAIMABLE — owner has gone silent"
+            : "until beneficiary can claim";
+
+          countdown.className =
+            "countdown " +
+            (claimable || (remSecs < 86400 && !triggered) ? "danger" : "safe");
+          card.className = "status-card " + (claimable ? "danger" : "safe");
+          document
+            .getElementById("triggeredOverlay")
+            .classList.toggle("hidden", !triggered);
+
+          await refreshBalance();
+
+          document.getElementById("statInterval").textContent =
+            Math.round(Number(interval) / 86400) + "d";
+          document.getElementById("statBeneficiary").textContent =
+            shortAddr(beneficiary);
+
+          card.classList.remove("hidden");
+
+          const isOwner = userAddress?.toLowerCase() === owner.toLowerCase();
+          const isBeneficiary =
+            userAddress?.toLowerCase() === beneficiary.toLowerCase();
+
+          document
+            .getElementById("ownerPanel")
+            .classList.toggle("hidden", !isOwner || triggered);
+          document
+            .getElementById("claimPanel")
+            .classList.toggle("hidden", !(isBeneficiary && claimable));
+        } catch (e) {
+          log("Refresh error: " + e.message, "err");
+        }
+      }
+
+      function startCountdown() {
+        if (countdownTimer) clearInterval(countdownTimer);
+        // Full state refresh every 5s, balance-only refresh every 8s
+        countdownTimer = setInterval(() => {
+          refreshState();
+        }, 5000);
+        // Also do a faster balance-only tick
+        setInterval(refreshBalance, BALANCE_REFRESH_MS);
+      }
+
+      // ── Owner actions ─────────────────────────────────────────────────────────
+
+      async function ping() {
+        setLoading("btnPing", true, "Pinging...");
+        try {
+          log("Pinging...", "info");
+          const tx = await contract.ping();
+          await tx.wait();
+          log("Pinged! Timer reset ✓", "ok");
+          await refreshState();
+        } catch (e) {
+          log("Ping failed: " + e.message, "err");
+        } finally {
+          setLoading("btnPing", false);
+        }
+      }
+
+      async function depositFunds() {
+        const amt = prompt("Amount to deposit (WND):");
+        if (!amt) return;
+        setLoading("btnDeposit", true, "Depositing...");
+        try {
+          log("Depositing...", "info");
+          const tx = await signer.sendTransaction({
+            to: CONTRACT_ADDRESS,
+            value: ethers.parseEther(amt),
+          });
+          await tx.wait();
+          log(`Deposited ${amt} WND ✓`, "ok");
+          await refreshState();
+        } catch (e) {
+          log("Deposit failed: " + e.message, "err");
+        } finally {
+          setLoading("btnDeposit", false);
+        }
+      }
+
+      async function withdrawFunds() {
+        if (!confirm("Cancel the switch and withdraw all funds?")) return;
+        setLoading("btnWithdraw", true, "Withdrawing...");
+        try {
+          const tx = await contract.withdraw();
+          await tx.wait();
+          log("Withdrawn. Switch cancelled ✓", "ok");
+          await refreshState();
+        } catch (e) {
+          log("Withdraw failed: " + e.message, "err");
+        } finally {
+          setLoading("btnWithdraw", false);
+        }
+      }
+
+      // ── Beneficiary action ────────────────────────────────────────────────────
+
+      async function claim() {
+        if (!confirm("Claim all funds from this switch?")) return;
+        setLoading("btnClaim", true, "Claiming...");
+        try {
+          log("Claiming...", "info");
+          const tx = await contract.claim();
+          await tx.wait();
+          log("Claimed! Funds transferred ✓", "ok");
+          await refreshState();
+        } catch (e) {
+          log("Claim failed: " + e.message, "err");
+        } finally {
+          setLoading("btnClaim", false);
+        }
+      }
+    </script>
+  </body>
+</html>

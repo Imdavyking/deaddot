@@ -1,0 +1,11 @@
+{
+  "name": "deaddot-deploy",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "deploy": "node deploy.mjs"
+  },
+  "dependencies": {
+    "ethers": "^6.7.0"
+  }
+}
