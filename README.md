@@ -121,13 +121,38 @@ BENEFICIARY_ADDRESS=0x...
 npm run deploy
 ```
 
-### 6. Add network to MetaMask
+### 6. Run the frontend
+
+```bash
+npm start
+```
+
+Opens at `http://localhost:3000`. Only the `public/` folder is served — `.env` and deploy scripts are never exposed.
+
+### 7. Add network to MetaMask
 
 | Field    | Value                                          |
 | -------- | ---------------------------------------------- |
 | RPC URL  | `https://services.polkadothub-rpc.com/testnet` |
 | Chain ID | `420420417`                                    |
 | Symbol   | `WND`                                          |
+
+---
+
+## Project Structure
+
+```
+deaddot/
+├── public/
+│   └── index.html       ← frontend UI
+├── DeadDOT.sol          ← smart contract
+├── deploy.mjs           ← deploy script (ethers.js)
+├── package.json
+├── .env                 ← private key + beneficiary (not committed)
+├── .gitignore
+└── out/                 ← compiled PVM binary (not committed)
+    └── DeadDOT.sol:DeadDOT.pvm
+```
 
 ---
 
@@ -149,6 +174,7 @@ npm run deploy
 - **resolc v0.1.0-dev.12 (Revive)** — Solidity → RISC-V / PVM
 - **ethers.js v6** — deployment + frontend
 - **Remix Polkadot IDE** — used for final deployment
+- **serve** — local frontend server
 - Vanilla HTML/CSS/JS frontend — zero framework dependencies
 
 ---
