@@ -24,7 +24,7 @@ Use cases: crypto inheritance, business continuity funds, time-locked grants, es
 DeadDOT is compiled with **resolc (Revive)** — Parity's Solidity → RISC-V compiler — targeting the Polkadot Virtual Machine directly:
 
 - **Not EVM bytecode** — RISC-V binary running natively on PVM
-- Native WND transfers — no wrapped tokens, no bridges
+- Native PAS transfers — no wrapped tokens, no bridges
 - Deployed via standard Ethereum tooling (ethers.js) — no Substrate calls needed
 
 ---
@@ -135,7 +135,7 @@ Opens at `http://localhost:3000`. Only the `public/` folder is served — `.env`
 | -------- | ---------------------------------------------- |
 | RPC URL  | `https://services.polkadothub-rpc.com/testnet` |
 | Chain ID | `420420417`                                    |
-| Symbol   | `WND`                                          |
+| Symbol   | `PAS`                                          |
 
 ---
 
@@ -162,7 +162,7 @@ deaddot/
 **Category: Accessing Polkadot native functionality — build with precompiles**
 
 - ✅ Compiled to PVM via resolc (Revive) — not EVM bytecode
-- ✅ Native WND transfers on Polkadot Hub
+- ✅ Native PAS transfers on Polkadot Hub
 - ✅ Deployed on Polkadot Hub testnet Chain ID 420420417
 - ✅ Standard Ethereum tooling — ethers.js, MetaMask
 

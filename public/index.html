@@ -542,7 +542,7 @@
             id="btnDeposit"
             onclick="depositFunds()"
           >
-            + Deposit WND
+            + Deposit PAS
           </button>
           <button
             class="btn btn-red"
@@ -721,7 +721,7 @@
         try {
           const bal = await provider.getBalance(CONTRACT_ADDRESS);
           document.getElementById("statBalance").textContent =
-            ethers.formatEther(bal) + " WND";
+            ethers.formatEther(bal) + " PAS";
         } catch (_) {}
       }
 
@@ -809,7 +809,7 @@
       }
 
       async function depositFunds() {
-        const amt = prompt("Amount to deposit (WND):");
+        const amt = prompt("Amount to deposit (PAS):");
         if (!amt) return;
         setLoading("btnDeposit", true, "Depositing...");
         try {
@@ -819,7 +819,7 @@
             value: ethers.parseEther(amt),
           });
           await tx.wait();
-          log(`Deposited ${amt} WND ✓`, "ok");
+          log(`Deposited ${amt} PAS ✓`, "ok");
           await refreshState();
         } catch (e) {
           log("Deposit failed: " + e.message, "err");
