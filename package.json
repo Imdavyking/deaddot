@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "deploy": "node deploy.mjs"
+    "deploy": "node deploy.mjs",
+    "start": "serve public"
   },
   "dependencies": {
-    "ethers": "^6.7.0"
+    "ethers": "^6.7.0",
+    "serve": "^14.0.0"
   }
 }
